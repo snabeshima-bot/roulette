@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>くじ引き＆ルーレット</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>くじ引き＆ルーレット</h1>
+  </header>
+
+  <main class="layout">
+    <section class="stage-card" aria-label="抽選">
+      <div class="tabs" role="tablist">
+        <button class="tab is-active" role="tab" aria-selected="true" data-mode="roulette">ルーレット</button>
+        <button class="tab" role="tab" aria-selected="false" data-mode="lottery">くじ箱</button>
+        <button class="tab" role="tab" aria-selected="false" data-mode="garagara">ガラガラ</button>
+      </div>
+
+      <div class="stage">
+        <div class="panel is-active" data-panel="roulette">
+          <canvas class="stage-canvas" id="rouletteCanvas" aria-label="ルーレット"></canvas>
+        </div>
+
+        <div class="panel" data-panel="lottery">
+          <div class="lottery" id="lottery">
+            <div class="box">
+              <div class="box-top"><div class="box-hole"></div></div>
+              <div class="paper"><span class="paper-text"></span></div>
+              <div class="box-front"><span class="box-label">くじ</span></div>
+            </div>
+            <p class="box-count"></p>
+          </div>
+        </div>
+
+        <div class="panel" data-panel="garagara">
+          <canvas class="stage-canvas" id="garagaraCanvas" aria-label="ガラガラ抽選器"></canvas>
+        </div>
+      </div>
+
+      <button class="draw-button" id="drawButton">回す</button>
+      <p class="stage-note" id="stageNote"></p>
+    </section>
+
+    <aside class="items-card" aria-label="項目">
+      <h2>項目</h2>
+      <form class="add-form" id="addForm">
+        <input type="text" id="addName" placeholder="項目名を入力して追加" maxlength="40" autocomplete="off">
+        <button type="submit">追加</button>
+      </form>
+
+      <div class="list-head" aria-hidden="true">
+        <span>名前</span><span>重み</span><span>確率</span><span></span>
+      </div>
+      <ul class="item-list" id="itemList"></ul>
+
+      <div class="options">
+        <label class="switch">
+          <input type="checkbox" id="excludeToggle">
+          <span class="switch-track"><span class="switch-thumb"></span></span>
+          <span>当たった項目を除外する</span>
+        </label>
+        <div class="exclude-status" id="excludeStatus" hidden>
+          <span id="excludeCount"></span>
+          <button type="button" class="ghost-button" id="resetWon">リセット</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <dialog class="result" id="resultDialog">
+    <form method="dialog">
+      <p class="result-label">結果</p>
+      <p class="result-name" id="resultName"></p>
+      <button class="draw-button" value="close">閉じる</button>
+    </form>
+  </dialog>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
