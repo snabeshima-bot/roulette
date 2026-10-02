@@ -5,6 +5,8 @@ import {
 import { createRoulette } from './roulette.js';
 import { createLottery } from './lottery.js';
 import { createGaragara } from './garagara.js';
+import { startConfetti } from './effects.js';
+import * as sound from './sound.js';
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -17,6 +19,7 @@ const modes = {
 let currentMode = 'roulette';
 let busy = false;
 let pendingWinner = null;
+let stopConfetti = null;
 
 const drawButton = $('#drawButton');
 const itemList = $('#itemList');
@@ -96,9 +99,9 @@ function renderStage() {
 
   let note = '';
   if (!active.length) {
-    note = state.excludeMode && state.items.some((it) => it.won)
-      ? 'すべて当選しました。「リセット」で元に戻せます。'
-      : '項目を追加してください。';
+    const allWon = state.excludeMode && state.items.some((it) => it.won);
+    if (isGuest()) note = allWon ? '本日の抽選は終了しました' : '準備中です';
+    else note = allWon ? 'すべて当選しました。「リセット」で元に戻せます。' : '項目を追加してください。';
   }
   $('#stageNote').textContent = note;
 }
@@ -106,7 +109,7 @@ function renderStage() {
 function setBusy(on) {
   busy = on;
   document.body.classList.toggle('is-busy', on);
-  for (const el of document.querySelectorAll('.tab, .items-card input, .items-card button')) {
+  for (const el of document.querySelectorAll('.tab, .items-card input, .items-card button, .header-actions button')) {
     el.disabled = on;
   }
   drawButton.disabled = on || activeItems().length === 0;
@@ -118,15 +121,20 @@ async function draw() {
   if (!winner) return;
   setBusy(true);
   await modes[currentMode].view.play(winner);
+  await sound.drumroll(850);
   pendingWinner = winner;
   $('#resultName').textContent = winner.name;
   $('#resultName').style.setProperty('--result-color', winner.color);
   dialog.showModal();
+  stopConfetti = startConfetti($('#confetti'));
+  sound.fanfare();
 }
 
 dialog.addEventListener('close', () => {
   const winner = pendingWinner;
   pendingWinner = null;
+  stopConfetti?.();
+  stopConfetti = null;
   setBusy(false);
   modes.lottery.view.reset();
   if (winner && state.excludeMode) markWon(winner.id);
@@ -168,6 +176,65 @@ $('#addForm').addEventListener('submit', (e) => {
 
 $('#excludeToggle').addEventListener('change', (e) => setExcludeMode(e.target.checked));
 $('#resetWon').addEventListener('click', () => resetWon());
+
+// ---- 効果音 ----
+
+const soundButton = $('#soundButton');
+function renderSoundButton() {
+  const on = sound.isEnabled();
+  soundButton.textContent = on ? '🔊 音あり' : '🔇 音なし';
+  soundButton.setAttribute('aria-pressed', String(on));
+}
+soundButton.addEventListener('click', () => {
+  sound.setEnabled(!sound.isEnabled());
+  renderSoundButton();
+});
+// ブラウザの制限で、最初の操作のときに音を使えるようにする
+for (const type of ['pointerdown', 'keydown']) {
+  window.addEventListener(type, () => sound.unlock(), { capture: true });
+}
+renderSoundButton();
+
+// ---- お客様モード ----
+
+const HOLD_MS = 1500;
+const guestExit = $('#guestExit');
+let holdTimer = 0;
+
+function isGuest() {
+  return document.body.classList.contains('guest');
+}
+
+function setGuest(on) {
+  document.body.classList.toggle('guest', on);
+  if (on) {
+    document.documentElement.requestFullscreen?.().catch(() => {});
+  } else if (document.fullscreenElement) {
+    document.exitFullscreen?.().catch(() => {});
+  }
+  renderStage();
+}
+
+$('#guestButton').addEventListener('click', () => setGuest(true));
+
+function cancelHold() {
+  clearTimeout(holdTimer);
+  guestExit.classList.remove('is-holding');
+}
+guestExit.addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  guestExit.classList.add('is-holding');
+  holdTimer = setTimeout(() => {
+    cancelHold();
+    setGuest(false);
+  }, HOLD_MS);
+});
+for (const type of ['pointerup', 'pointerleave', 'pointercancel']) guestExit.addEventListener(type, cancelHold);
+guestExit.addEventListener('contextmenu', (e) => e.preventDefault());
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && isGuest() && !dialog.open && !busy) setGuest(false);
+});
 
 function refresh() {
   renderList();

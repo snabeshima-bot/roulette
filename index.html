@@ -3,13 +3,31 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>くじ引き＆ルーレット</title>
+  <meta name="theme-color" content="#141a2e">
+  <title>福引抽選会</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@500;700&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="lanterns" aria-hidden="true">
+    <span class="lantern">福</span><span class="lantern">引</span><span class="lantern">祭</span>
+    <span class="lantern">福</span><span class="lantern">引</span><span class="lantern">祭</span>
+    <span class="lantern">福</span><span class="lantern">引</span><span class="lantern">祭</span>
+  </div>
+
   <header class="app-header">
-    <h1>くじ引き＆ルーレット</h1>
+    <h1>福引抽選会</h1>
+    <div class="header-actions">
+      <button type="button" class="ghost-button" id="soundButton" aria-pressed="true">🔊 音あり</button>
+      <button type="button" class="ghost-button" id="guestButton">お客様モード</button>
+    </div>
   </header>
+
+  <button type="button" class="guest-exit" id="guestExit" aria-label="長押しで管理画面に戻る">
+    <svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15"></circle></svg>
+  </button>
 
   <main class="layout">
     <section class="stage-card" aria-label="抽選">
@@ -28,8 +46,8 @@
           <div class="lottery" id="lottery">
             <div class="box">
               <div class="box-top"><div class="box-hole"></div></div>
-              <div class="paper"><span class="paper-text"></span></div>
-              <div class="box-front"><span class="box-label">くじ</span></div>
+              <div class="paper"><span class="paper-text"></span><span class="hanko">当</span></div>
+              <div class="box-front"><span class="box-label">福引</span></div>
             </div>
             <p class="box-count"></p>
           </div>
@@ -45,7 +63,7 @@
     </section>
 
     <aside class="items-card" aria-label="項目">
-      <h2>項目</h2>
+      <h2>景品・項目</h2>
       <form class="add-form" id="addForm">
         <input type="text" id="addName" placeholder="項目名を入力して追加" maxlength="40" autocomplete="off">
         <button type="submit">追加</button>
@@ -67,12 +85,15 @@
           <button type="button" class="ghost-button" id="resetWon">リセット</button>
         </div>
       </div>
+      <p class="hint">「お客様モード」にすると、この欄（重み・確率）は隠れます。右上の隅を長押しするか Esc キーで戻れます。</p>
     </aside>
   </main>
 
-  <dialog class="result" id="resultDialog">
-    <form method="dialog">
-      <p class="result-label">結果</p>
+  <dialog class="reveal" id="resultDialog">
+    <canvas class="confetti" id="confetti"></canvas>
+    <div class="reveal-rays" aria-hidden="true"></div>
+    <form method="dialog" class="plaque">
+      <p class="reveal-title">結果発表</p>
       <p class="result-name" id="resultName"></p>
       <button class="draw-button" value="close">閉じる</button>
     </form>
